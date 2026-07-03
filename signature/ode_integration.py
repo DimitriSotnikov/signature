@@ -46,8 +46,13 @@ def ode_solver_traj(
         return psi_next, psi_next.array
 
     psi_res, arr_res = jax.lax.scan(scan_fun, init=init, xs=(dt_arr, jnp.arange(dt_arr.shape[0])))
-    arr_res = jnp.vstack([init.array, arr_res])
-    return TensorSequence(array=arr_res.T, trunc=init.trunc, dim=init.dim)
+    # ``arr_res`` is stacked along a leading time axis: ``(n_dw, n_sig, *batch)``. Prepend the
+    # terminal condition and move the time axis to the end, giving ``(n_sig, *batch, n_dw)``. For a
+    # 1-D ``init`` this reproduces the historical ``(n_sig, n_dw)`` output; for a batched ``init``
+    # of shape ``(n_sig, size)`` it natively yields ``(n_sig, size, n_dw)`` (one Riccati trajectory
+    # per column), which the recentering loop relies on.
+    arr_res = jnp.concatenate([init.array[None], arr_res], axis=0)
+    return TensorSequence(array=jnp.moveaxis(arr_res, 0, -1), trunc=init.trunc, dim=init.dim)
 
 
 @partial(jax.jit, static_argnames=['fun'])
