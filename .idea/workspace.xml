@@ -1,0 +1,371 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="94211cc7-3f1e-4176-86d8-b375f781e2a6" name="Changes" comment="testing sigkernel">
+      <change beforePath="$PROJECT_DIR$/notebooks/BTC-Vol_EFM-Signature.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/notebooks/BTC-Vol_EFM-Signature.ipynb" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/notebooks/EFM-Signature.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/notebooks/EFM-Signature.ipynb" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/notebooks/images/riccati_zeros/psi_series.pdf" beforeDir="false" afterPath="$PROJECT_DIR$/notebooks/images/riccati_zeros/psi_series.pdf" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/notebooks/images/riccati_zeros/zeros_imag_line.pdf" beforeDir="false" afterPath="$PROJECT_DIR$/notebooks/images/riccati_zeros/zeros_imag_line.pdf" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Python Script" />
+        <option value="Jupyter Notebook" />
+      </list>
+    </option>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;MrG1raffe&quot;
+  }
+}</component>
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/MrG1raffe/signature&quot;,
+    &quot;accountId&quot;: &quot;3dfc427b-d92f-42b0-8955-2dc86648d31d&quot;
+  }
+}</component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 3
+}</component>
+  <component name="ProjectId" id="34PkIOguMucSYWZkzIbKpHd5dGe" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
+    &quot;junie.onboarding.icon.badge.shown&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/Users/dimitri.sotnikov/Projets/Signature/notebooks&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.pluginManager&quot;,
+    &quot;to.speed.mode.migration.done&quot;: &quot;true&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  }
+}</component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/notebooks" />
+    </key>
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/signature/learning/MMD" />
+      <recent name="$PROJECT_DIR$/notebooks" />
+      <recent name="$PROJECT_DIR$/notebooks/martingality_results" />
+      <recent name="$PROJECT_DIR$/notebooks/images/malliavin" />
+      <recent name="$PROJECT_DIR$/notebooks/images" />
+    </key>
+  </component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-js-predefined-d6986cc7102b-3aa1da707db6-JavaScript-PY-252.26830.99" />
+        <option value="bundled-python-sdk-164cda30dcd9-0af03a5fa574-com.jetbrains.pycharm.pro.sharedIndexes.bundled-PY-252.26830.99" />
+      </set>
+    </attachedChunks>
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="94211cc7-3f1e-4176-86d8-b375f781e2a6" name="Changes" comment="" />
+      <created>1761122513550</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1761122513550</updated>
+      <workItem from="1761122514754" duration="62000" />
+      <workItem from="1761122579831" duration="5160000" />
+      <workItem from="1761154784305" duration="4166000" />
+      <workItem from="1761225902260" duration="10380000" />
+      <workItem from="1761314982773" duration="2859000" />
+      <workItem from="1761565262945" duration="17490000" />
+      <workItem from="1761640809845" duration="2598000" />
+      <workItem from="1761926777767" duration="8407000" />
+      <workItem from="1762162433018" duration="15279000" />
+      <workItem from="1762333732851" duration="2445000" />
+      <workItem from="1763137910770" duration="4941000" />
+      <workItem from="1763632262458" duration="11856000" />
+      <workItem from="1763734403418" duration="3270000" />
+      <workItem from="1764164721244" duration="2846000" />
+      <workItem from="1764261655589" duration="2071000" />
+      <workItem from="1764766970945" duration="1316000" />
+      <workItem from="1764861056722" duration="1806000" />
+      <workItem from="1765198872275" duration="3844000" />
+      <workItem from="1765207981191" duration="3746000" />
+      <workItem from="1765867471318" duration="7000" />
+      <workItem from="1765988415744" duration="7235000" />
+      <workItem from="1766148387613" duration="8698000" />
+      <workItem from="1766403189937" duration="16927000" />
+      <workItem from="1767641187526" duration="65000" />
+      <workItem from="1767949938930" duration="2692000" />
+      <workItem from="1769097086030" duration="1227000" />
+      <workItem from="1770213885831" duration="1910000" />
+      <workItem from="1771231390709" duration="23564000" />
+      <workItem from="1771352804848" duration="842000" />
+      <workItem from="1771423186859" duration="703000" />
+      <workItem from="1771518261342" duration="2754000" />
+      <workItem from="1772226297681" duration="5269000" />
+      <workItem from="1772628450347" duration="227000" />
+      <workItem from="1772628694458" duration="571000" />
+      <workItem from="1772633694951" duration="5263000" />
+      <workItem from="1772719989343" duration="12306000" />
+      <workItem from="1772739803991" duration="41000" />
+      <workItem from="1773219672012" duration="28746000" />
+      <workItem from="1773406609611" duration="28357000" />
+      <workItem from="1773657496829" duration="20395000" />
+      <workItem from="1773762448468" duration="19000" />
+      <workItem from="1773763817069" duration="8704000" />
+      <workItem from="1773992565492" duration="2707000" />
+      <workItem from="1774475090819" duration="2086000" />
+      <workItem from="1774949283271" duration="20160000" />
+      <workItem from="1775291684072" duration="2748000" />
+      <workItem from="1776091055299" duration="615000" />
+      <workItem from="1776243407703" duration="2979000" />
+      <workItem from="1776327358295" duration="6543000" />
+      <workItem from="1776711074709" duration="21000" />
+      <workItem from="1776931261755" duration="11828000" />
+      <workItem from="1777460792960" duration="6024000" />
+      <workItem from="1777656418647" duration="8912000" />
+      <workItem from="1777720500976" duration="4437000" />
+      <workItem from="1778659713858" duration="5888000" />
+      <workItem from="1779110623684" duration="5323000" />
+      <workItem from="1779283026654" duration="11601000" />
+      <workItem from="1779807382407" duration="7000" />
+      <workItem from="1779810723874" duration="726000" />
+      <workItem from="1780578231688" duration="4168000" />
+      <workItem from="1781104776823" duration="7815000" />
+      <workItem from="1781165343990" duration="2318000" />
+      <workItem from="1781175192884" duration="5683000" />
+      <workItem from="1781180902040" duration="58000" />
+      <workItem from="1781180982339" duration="125000" />
+      <workItem from="1781181152275" duration="1231000" />
+      <workItem from="1781184969694" duration="2493000" />
+      <workItem from="1781187939147" duration="2148000" />
+      <workItem from="1781276636202" duration="1325000" />
+      <workItem from="1782071867353" duration="1221000" />
+      <workItem from="1782425014772" duration="1060000" />
+    </task>
+    <task id="LOCAL-00001" summary="Updated environment.yml and requirements.txt">
+      <option name="closed" value="true" />
+      <created>1761157367722</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1761157367722</updated>
+    </task>
+    <task id="LOCAL-00002" summary="Updated README.md and EFM-Signature.ipynb">
+      <option name="closed" value="true" />
+      <created>1761232797064</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1761232797064</updated>
+    </task>
+    <task id="LOCAL-00003" summary="Updated README.md and EFM-Signature.ipynb">
+      <option name="closed" value="true" />
+      <created>1761233108296</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1761233108296</updated>
+    </task>
+    <task id="LOCAL-00004" summary="Updated README.md and setup.py">
+      <option name="closed" value="true" />
+      <created>1761235165529</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1761235165529</updated>
+    </task>
+    <task id="LOCAL-00005" summary="Add smile asymptotics in the Sig-Vol model in Martingality criterion.ipynb">
+      <option name="closed" value="true" />
+      <created>1761926864126</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1761926864126</updated>
+    </task>
+    <task id="LOCAL-00006" summary="Updated Martingality criterion.ipynb and SignaturePDV.ipynb">
+      <option name="closed" value="true" />
+      <created>1762174736021</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1762174736021</updated>
+    </task>
+    <task id="LOCAL-00007" summary="Fixed bug in the ESig">
+      <option name="closed" value="true" />
+      <created>1763139040080</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1763139040080</updated>
+    </task>
+    <task id="LOCAL-00008" summary="Updated notebooks">
+      <option name="closed" value="true" />
+      <created>1765211580041</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1765211580041</updated>
+    </task>
+    <task id="LOCAL-00009" summary="Add cubature of order 5, upload data for SPX-VIX regression">
+      <option name="closed" value="true" />
+      <created>1766008629789</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1766008629789</updated>
+    </task>
+    <task id="LOCAL-00010" summary="Update cubatures and VIX coef">
+      <option name="closed" value="true" />
+      <created>1767641242463</created>
+      <option name="number" value="00010" />
+      <option name="presentableId" value="LOCAL-00010" />
+      <option name="project" value="LOCAL" />
+      <updated>1767641242463</updated>
+    </task>
+    <task id="LOCAL-00011" summary="Update Malliavin notebook">
+      <option name="closed" value="true" />
+      <created>1771274280811</created>
+      <option name="number" value="00011" />
+      <option name="presentableId" value="LOCAL-00011" />
+      <option name="project" value="LOCAL" />
+      <updated>1771274280811</updated>
+    </task>
+    <task id="LOCAL-00012" summary="Add EFM-Sig with lead-lag for the VIX regression problem">
+      <option name="closed" value="true" />
+      <created>1772637905019</created>
+      <option name="number" value="00012" />
+      <option name="presentableId" value="LOCAL-00012" />
+      <option name="project" value="LOCAL" />
+      <updated>1772637905019</updated>
+    </task>
+    <task id="LOCAL-00013" summary="Updated path_signature.py to compute the sliding window sig">
+      <option name="closed" value="true" />
+      <created>1772739835521</created>
+      <option name="number" value="00013" />
+      <option name="presentableId" value="LOCAL-00013" />
+      <option name="project" value="LOCAL" />
+      <updated>1772739835521</updated>
+    </task>
+    <task id="LOCAL-00014" summary="Add consumption forecasting; update VIX example">
+      <option name="closed" value="true" />
+      <created>1773264899316</created>
+      <option name="number" value="00014" />
+      <option name="presentableId" value="LOCAL-00014" />
+      <option name="project" value="LOCAL" />
+      <updated>1773264899316</updated>
+    </task>
+    <task id="LOCAL-00015" summary="Magie noire de la vol de vol">
+      <option name="closed" value="true" />
+      <created>1773445223042</created>
+      <option name="number" value="00015" />
+      <option name="presentableId" value="LOCAL-00015" />
+      <option name="project" value="LOCAL" />
+      <updated>1773445223042</updated>
+    </task>
+    <task id="LOCAL-00016" summary="Some ML examples with EFM">
+      <option name="closed" value="true" />
+      <created>1773768554057</created>
+      <option name="number" value="00016" />
+      <option name="presentableId" value="LOCAL-00016" />
+      <option name="project" value="LOCAL" />
+      <updated>1773768554057</updated>
+    </task>
+    <task id="LOCAL-00017" summary="Some ML examples with EFM">
+      <option name="closed" value="true" />
+      <created>1773772290333</created>
+      <option name="number" value="00017" />
+      <option name="presentableId" value="LOCAL-00017" />
+      <option name="project" value="LOCAL" />
+      <updated>1773772290334</updated>
+    </task>
+    <task id="LOCAL-00018" summary="Some updates in vol index regression">
+      <option name="closed" value="true" />
+      <created>1774991235599</created>
+      <option name="number" value="00018" />
+      <option name="presentableId" value="LOCAL-00018" />
+      <option name="project" value="LOCAL" />
+      <updated>1774991235599</updated>
+    </task>
+    <task id="LOCAL-00019" summary="Some updates in vol index regression">
+      <option name="closed" value="true" />
+      <created>1776711089927</created>
+      <option name="number" value="00019" />
+      <option name="presentableId" value="LOCAL-00019" />
+      <option name="project" value="LOCAL" />
+      <updated>1776711089927</updated>
+    </task>
+    <task id="LOCAL-00020" summary="Updated some notebooks">
+      <option name="closed" value="true" />
+      <created>1779371250101</created>
+      <option name="number" value="00020" />
+      <option name="presentableId" value="LOCAL-00020" />
+      <option name="project" value="LOCAL" />
+      <updated>1779371250101</updated>
+    </task>
+    <task id="LOCAL-00021" summary="Updated Chasse_aux_zéros.ipynb">
+      <option name="closed" value="true" />
+      <created>1779810745881</created>
+      <option name="number" value="00021" />
+      <option name="presentableId" value="LOCAL-00021" />
+      <option name="project" value="LOCAL" />
+      <updated>1779810745881</updated>
+    </task>
+    <task id="LOCAL-00022" summary="testing sigkernel">
+      <option name="closed" value="true" />
+      <created>1781113779701</created>
+      <option name="number" value="00022" />
+      <option name="presentableId" value="LOCAL-00022" />
+      <option name="project" value="LOCAL" />
+      <updated>1781113779701</updated>
+    </task>
+    <option name="localTasksCounter" value="23" />
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="Updated environment.yml and requirements.txt" />
+    <MESSAGE value="Updated README.md and EFM-Signature.ipynb" />
+    <MESSAGE value="Updated README.md and setup.py" />
+    <MESSAGE value="Add smile asymptotics in the Sig-Vol model in Martingality criterion.ipynb" />
+    <MESSAGE value="Updated Martingality criterion.ipynb and SignaturePDV.ipynb" />
+    <MESSAGE value="Fixed bug in the ESig" />
+    <MESSAGE value="Updated notebooks" />
+    <MESSAGE value="Add cubature of order 5, upload data for SPX-VIX regression" />
+    <MESSAGE value="Update cubatures and VIX coef" />
+    <MESSAGE value="Update Malliavin notebook" />
+    <MESSAGE value="Add EFM-Sig with lead-lag for the VIX regression problem" />
+    <MESSAGE value="Updated path_signature.py to compute the sliding window sig" />
+    <MESSAGE value="Add consumption forecasting; update VIX example" />
+    <MESSAGE value="Magie noire de la vol de vol" />
+    <MESSAGE value="Some ML examples with EFM" />
+    <MESSAGE value="Some updates in vol index regression" />
+    <MESSAGE value="Updated some notebooks" />
+    <MESSAGE value="Updated Chasse_aux_zéros.ipynb" />
+    <MESSAGE value="testing sigkernel" />
+    <option name="LAST_COMMIT_MESSAGE" value="testing sigkernel" />
+  </component>
+</project>
