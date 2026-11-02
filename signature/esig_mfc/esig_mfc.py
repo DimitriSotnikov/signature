@@ -135,8 +135,15 @@ def target_paths(kind: str, T: float, n_steps: int, M: int, seed: int,
       Brownian-like with volatility ``2 c x0``. The top signature moments scale like ``c^6``; for
       ``x0 = 0`` they are lighter than Brownian ones (target inside the cone) only for
       ``c < (15/10395)^{1/6} ~ 0.34``.
+    * ``kind="rl_fbm"``: Riemann--Liouville fractional Brownian motion with a (possibly shifted)
+      kernel, ``X_t = x0 + int_0^t K(t - s) dW_s``, ``K(u) = eta (u + delta)^{H - 1/2}``, simulated
+      exactly on the grid (Gaussian vector, covariance by quadrature). Parameters ``H=0.5, delta=0.0,
+      eta=sqrt(2H), x0=0.0``; ``Var X_t = eta^2 ((t + delta)^{2H} - delta^{2H}) / (2H)``. ``delta = 0``
+      is the RL fBM (not a semimartingale for ``H != 1/2``). For ``delta > 0`` the kernel is smooth on
+      ``[0, T]`` and ``dX_t = K(0) dW_t + (int_0^t K'(t - s) dW_s) dt`` is a semimartingale; its law is
+      absolutely continuous w.r.t. Wiener measure iff ``K(0) = 1``, i.e. ``eta = delta^{1/2 - H}``.
 
-    :param kind: ``"ou"``, ``"double_well"``, ``"cir"`` or ``"w2"``.
+    :param kind: ``"ou"``, ``"double_well"``, ``"cir"``, ``"w2"`` or ``"rl_fbm"``.
     :param T: horizon.
     :param n_steps: number of time steps.
     :param M: number of paths.
@@ -201,7 +208,53 @@ def target_paths(kind: str, T: float, n_steps: int, M: int, seed: int,
             raise TypeError(f"unexpected w2 parameters: {sorted(params)}")
         _, W = brownian_paths(T, n_steps, M, seed)
         return t_grid, c * (x0 + W) ** 2
-    raise ValueError(f"unknown target kind {kind!r}; expected 'ou', 'double_well', 'cir' or 'w2'.")
+    if kind == "rl_fbm":
+        H = float(params.pop("H", 0.5))
+        delta = float(params.pop("delta", 0.0))
+        eta = params.pop("eta", None)
+        eta = np.sqrt(2.0 * H) if eta is None else float(eta)
+        x0 = float(params.pop("x0", 0.0))
+        if params:
+            raise TypeError(f"unexpected rl_fbm parameters: {sorted(params)}")
+        if not 0.0 < H < 1.0 or delta < 0.0:
+            raise ValueError("rl_fbm needs 0 < H < 1 and delta >= 0.")
+        cov = _rl_fbm_covariance(t_grid[1:], H, delta, eta)
+        vals, vecs = np.linalg.eigh(cov)
+        root = vecs * np.sqrt(np.clip(vals, 0.0, None))     # cov = root @ root.T (robust to H -> 1)
+        X = np.empty((M, n_steps + 1))
+        X[:, 0] = x0
+        X[:, 1:] = x0 + rng.normal(size=(M, n_steps)) @ root.T
+        return t_grid, X
+    raise ValueError(f"unknown target kind {kind!r}; expected 'ou', 'double_well', 'cir', 'w2' or 'rl_fbm'.")
+
+
+def _rl_fbm_covariance(t: np.ndarray, H: float, delta: float, eta: float,
+                       n_nodes: int = 16) -> np.ndarray:
+    """Covariance ``Cov(X_s, X_t) = int_0^{s ^ t} K(s - r) K(t - r) dr`` of the Volterra process
+    ``X_t = int_0^t K(t - r) dW_r`` with ``K(u) = eta (u + delta)^{H - 1/2}``, on a uniform grid ``t``.
+
+    With ``u = (s ^ t) - r`` and lag ``h = |t - s|`` the entry is ``C(s ^ t, h) = int_0^{s ^ t} K(u) K(u + h) du``.
+    For each lag, the integral is a cumulative sum of Gauss--Legendre cell integrals on the grid, in
+    the variable ``w`` with ``u + delta = w^p``, ``p = ceil(H + 1/2) / (H + 1/2)``. Then
+    ``K(u) du = eta p w^{p (H + 1/2) - 1} dw`` is a polynomial in ``w``, which removes the singularity of
+    ``K`` (``H < 1/2``) or of ``K'`` (``H > 1/2``) at ``u = -delta`` for every shift. The diagonal ``h = 0``
+    uses the closed form ``eta^2 ((s + delta)^{2H} - delta^{2H}) / (2H)``.
+    """
+    n = t.size
+    dt = t[0]
+    a = np.concatenate([[0.0], t]) + delta               # cumulative upper limits of u + delta
+    lags = dt * np.arange(n)
+    x, wq = np.polynomial.legendre.leggauss(n_nodes)
+    p = np.ceil(H + 0.5) / (H + 0.5)
+    lo, hi = a[:-1] ** (1.0 / p), a[1:] ** (1.0 / p)     # cells in the substituted variable
+    w = 0.5 * (hi - lo)[:, None] * x[None, :] + 0.5 * (hi + lo)[:, None]      # (n_cells, n_nodes)
+    K_du = 0.5 * (hi - lo)[:, None] * wq[None, :] * eta * p * w ** (p * (H + 0.5) - 1.0)
+    K_shift = eta * (w[None, :, :] ** p + lags[:, None, None]) ** (H - 0.5)          # K(u + h)
+    cells = np.einsum("cq,lcq->lc", K_du, K_shift)       # (n_lags, n_cells)
+    C = np.cumsum(cells, axis=1)                         # C[l, i] = C(t_i, lag_l)
+    C[0] = eta ** 2 * ((t + delta) ** (2 * H) - delta ** (2 * H)) / (2 * H)
+    i, j = np.meshgrid(np.arange(n), np.arange(n), indexing="ij")
+    return C[np.abs(i - j), np.minimum(i, j)]
 
 
 def expected_signature(S: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:

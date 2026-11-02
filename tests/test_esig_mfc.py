@@ -102,10 +102,34 @@ class TestTargetPaths(unittest.TestCase):
         np.testing.assert_allclose(X[:, 0], 1.0)
         self.assertLess(abs((X[:, -1] - 1.0).mean() - T), 5 * (X[:, -1] - 1.0).std() / np.sqrt(M))
 
+        # RL fBM with shifted kernel: Var X_t = eta^2 ((t + delta)^{2H} - delta^{2H}) / (2H)
+        for H, delta in [(0.1, 0.0), (0.1, 0.01), (0.8, 0.01)]:
+            t_grid, X = em.target_paths("rl_fbm", T, n_steps, M, seed=4, H=H, delta=delta, x0=0.3)
+            np.testing.assert_allclose(X[:, 0], 0.3)
+            var = (t_grid + delta) ** (2 * H) - delta ** (2 * H)
+            for k in (1, n_steps // 2, n_steps):
+                self.assertLess(abs(X[:, k].var() / var[k] - 1), 5 * np.sqrt(2 / M))
+        with self.assertRaises(ValueError):
+            em.target_paths("rl_fbm", T, n_steps, 10, seed=0, H=1.2)
+
         with self.assertRaises(ValueError):
             em.target_paths("nope", T, n_steps, 10, seed=0)
         with self.assertRaises(TypeError):
             em.target_paths("ou", T, n_steps, 10, seed=0, bogus=1.0)
+
+    def test_rl_fbm_covariance(self):
+        """The quadrature covariance of the shifted RL kernel against exact cases."""
+        t = np.linspace(0.0, T, 101)[1:]
+        # H = 1/2, eta = 1: K = 1, X = W, Cov = min(s, t)
+        np.testing.assert_allclose(em.esig_mfc._rl_fbm_covariance(t, 0.5, 0.0, 1.0),
+                                   np.minimum.outer(t, t), atol=1e-14)
+        # H = 3/2 is outside (0, 1) but K(u) = u + delta is polynomial: Cov(X_s, X_t) in closed form
+        delta = 0.1
+        s_, t_ = np.minimum.outer(t, t), np.maximum.outer(t, t)
+        h = t_ - s_
+        u = s_
+        exact = (u ** 3 / 3 + (2 * delta + h) * u ** 2 / 2 + delta * (delta + h) * u)
+        np.testing.assert_allclose(em.esig_mfc._rl_fbm_covariance(t, 1.5, delta, 1.0), exact, rtol=1e-12)
 
 
 class TestCone(unittest.TestCase):
