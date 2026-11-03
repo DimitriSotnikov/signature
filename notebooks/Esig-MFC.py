@@ -61,14 +61,16 @@ plt.rcParams["figure.figsize"] = ((1 + np.sqrt(5)) / 2 * 5, 5)
 plt.rcParams["figure.autolayout"] = True
 plt.rcParams["axes.grid"] = True
 plt.rcParams["axes.prop_cycle"] = matplotlib.cycler(color=PALETTE)
-LAW_COLORS = {"target": PALETTE[0], "generated": PALETTE[1], "resampled": PALETTE[4], "BM": PALETTE[2]}
+LAW_COLORS = {"target": PALETTE[0], "generated": PALETTE[1], "BM": PALETTE[2]}
 CLASS_COLORS = {"free": PALETTE[0], "lead": PALETTE[1], "forced": PALETTE[5]}
+IMG = ("notebooks/" if os.path.isdir("notebooks") else "") + "images/esig-matching"
+os.makedirs(IMG, exist_ok=True)
 
 # ---- parameters (spec §4) ----
-N = 7                    # truncation: n_sig = 255, 247 active coordinates
+N = 5                    # truncation: n_sig = 255, 247 active coordinates
 T = 1.0
 N_STEPS = 500            # grid of the target, the dual sample and the resampled paths
-TARGET = "cir"    # "ou" | "double_well" | "cir" | "w2" | "rl_fbm_h01|h06|h07|h08"  (see Part 1)
+TARGET = "rl_fbm_h01"    # "ou" | "double_well" | "cir" | "w2" | "rl_fbm_h01|h06|h07|h08"  (see Part 1)
 TARGET = TARGET.lower()
 TARGETS = {              # name -> (kind of em.target_paths, parameters)
     # theta = 5: Var X_T ~ 1/(2 theta) = 0.1 vs Var W_T = 1, clearly not the uncontrolled BM
@@ -82,21 +84,27 @@ TARGETS = {              # name -> (kind of em.target_paths, parameters)
     "w2": ("w2", dict(c=0.2, x0=0.0)),
     # X_t = int_0^t K(t-s) dW_s, K(u) = eta (u + delta)^(H - 1/2). delta > 0 makes X a semimartingale;
     # eta = delta^(1/2 - H) normalises K(0) = 1, i.e. unit instantaneous variance as dW (feasible law)
-    "rl_fbm_h01": ("rl_fbm", dict(H=0.1, delta=0.01, eta=0.01 ** 0.4, x0=0.0)),
+    "rl_fbm_h01": ("rl_fbm", dict(H=0.1, delta=0.1, eta=0.1 ** 0.4, x0=0.0)),
     "rl_fbm_h06": ("rl_fbm", dict(H=0.6, delta=0.1, eta=0.1 ** -0.1, x0=0.0)),
     "rl_fbm_h07": ("rl_fbm", dict(H=0.7, delta=0.01, eta=0.01 ** -0.2, x0=0.0)),
     "rl_fbm_h08": ("rl_fbm", dict(H=0.8, delta=0.1, eta=0.1 ** -0.3, x0=0.0)),
 }
 TARGET_KIND, TARGET_PARAMS = TARGETS[TARGET]
-M_TARGET = 20_000
+M_TARGET = 100_000
 M_DUAL = 100_000         # Brownian paths of the dual (SAA) sample, kept for resampling
-M_OOS = 50_000           # independent Brownian sample for the out-of-sample check
+M_OOS = 100_000           # independent Brownian sample for the out-of-sample check
 WEIGHTS = "uniform"      # "uniform" (the note) or "inverse_variance" (chi^2; see the caveat in Part 3)
 KAPPAS = [10.0, 100.0, 1000.0, 10_000.0]
 CONE_N, CONE_M, EPS = N // 2, N //2, 1e-6
 GEN_SIZE, N_MC, GEN_STEPS = 2000, 20_000, 100
 
 SEED_TARGET, SEED_DUAL, SEED_OOS, SEED_MC, SEED_GEN, SEED_RESAMPLE = 0, 1, 2, 3, 4, 5
+
+
+def save_pdf(fig, name):
+    """Save ``fig`` under ``IMG``; the file name carries TARGET and N so that runs do not overwrite each other."""
+    fig.savefig(f"{IMG}/{TARGET}_N{N}_{name}.pdf", format="pdf", transparent=True)
+
 
 # %% [markdown]
 # ## Part 1 — Target expected signature
@@ -152,29 +160,14 @@ levels = np.array([len(str(w)) if w else 0 for w in words])
 word_labels = np.array([str(w) if w else "Ø" for w in words])
 print(f"target signatures: {S_target.shape}, {time.time() - t0:.1f}s")
 
-# Target drift, used as a reference for the optimal control in Part 3. `target_drift` is the drift as a
-# function of the state (Markov drift laws only); `drift_ref` = (label, t, mean, std) of the target's
-# drift over time, when it is known (None for the laws that have no drift representation).
-target_drift = drift_ref = None
+# Target drift as a function of the state (Markov drift laws only), a reference for the feedback in Part 3.
+target_drift = None
 if TARGET_KIND == "ou":
     th, mu_ = TARGET_PARAMS["theta"], TARGET_PARAMS["mu"]
     target_drift = (r"OU drift $\theta(\mu-X_t)$", lambda x: th * (mu_ - x))
 elif TARGET_KIND == "double_well":
     h_ = TARGET_PARAMS["h"]
     target_drift = (r"double-well drift $-V'(X_t)$", lambda x: -4 * h_ * x * (x ** 2 - 1))
-if target_drift is not None:
-    b_target = target_drift[1](X_target)
-    drift_ref = (target_drift[0], t_grid, b_target.mean(axis=0), b_target.std(axis=0))
-elif TARGET_KIND == "rl_fbm" and TARGET_PARAMS["delta"] > 0 and np.isclose(
-        (TARGET_PARAMS.get("eta") or np.sqrt(2 * TARGET_PARAMS["H"]))
-        * TARGET_PARAMS["delta"] ** (TARGET_PARAMS["H"] - 0.5), 1.0):
-    # K(0) = 1 only: then dX = dW + b dt, and b_t = int_0^t K'(t-s) dW_s is the target's drift, a centred
-    # Gaussian with Var b_t = int_0^t K'(u)^2 du in closed form. For K(0) != 1 the law is singular and
-    # b_t is not a reference for the control.
-    H_, d_ = TARGET_PARAMS["H"], TARGET_PARAMS["delta"]
-    eta_ = TARGET_PARAMS.get("eta") or np.sqrt(2 * H_)
-    var_b = eta_ ** 2 * (H_ - 0.5) ** 2 * (d_ ** (2 * H_ - 2) - (t_grid + d_) ** (2 * H_ - 2)) / (2 - 2 * H_)
-    drift_ref = (r"fBM drift $b_t=\int_0^tK'(t-s)\,dW_s$", t_grid, np.zeros_like(t_grid), np.sqrt(var_b))
 
 # %%
 weights = em.word_weights(WEIGHTS, S_target, cone)
@@ -286,14 +279,9 @@ print(f"log Z: in-sample {float(tilt_star.logZ):.5f}, out-of-sample {float(tilt_
 # $H(Q^*|\mathbb W)$, and energy plus penalty equals $J(\boldsymbol p^*)$.
 #
 # **The control.** The figure below shows:
-# - **top row:** a few generated paths and their control trajectories $t\mapsto\alpha^*_t$, coloured by
-#   the terminal value $X_T$, so each path can be paired with its control;
-# - **bottom left:** the quantiles of $\alpha^*_t$ over time. When the target is a feasible drift law
-#   (OU, double well, fBM with $K(0)=1$), its own drift is overlaid: $\theta(\mu-X_t)$, $-V'(X_t)$, or
-#   $b_t=\int_0^tK'(t-s)dW_s$, a centred Gaussian with variance $\int_0^tK'(u)^2du$. For such a target,
-#   $\alpha^*$ approaches the target drift in law as $\kappa\to\infty$ (up to the truncation $N$);
-# - **bottom right:** $\alpha^*_t$ against $X_t$ at a few times. For a Markov target this should follow
-#   the target's drift function (dashed). For a path-dependent target such as the fBM, the vertical
+# - **left:** a few generated paths, coloured by the terminal value $X_T$;
+# - **right:** $\alpha^*_t$ against $X_t$ at a few times. For a Markov target this should follow the
+#   target's drift function (dashed). For a path-dependent target such as the fBM, the vertical
 #   spread at a given state is the dependence on the past.
 #
 # **Diverging generated paths.** The cone guarantees that $\langle-\kappa\boldsymbol p,\widehat{\mathbb X}_T\rangle$ is
@@ -343,39 +331,15 @@ if HAS_GEN:
     cmap_xt = LinearSegmentedColormap.from_list("xt", [PALETTE[5], PALETTE[0], PALETTE[2], PALETTE[1]])
     norm_xt = Normalize(*np.percentile(gen_X[:, -1], [5, 95]))
     colors_xt = cmap_xt(norm_xt(gen_X[:N_SHOW, -1]))
-    fig, axes = plt.subplots(2, 2, figsize=(20, 10))
+    fig, axes = plt.subplots(1, 2, figsize=(20, 6))
 
-    ax = axes[0, 0]
+    ax = axes[0]
     for x_, c_ in zip(gen_X[:N_SHOW], colors_xt):
         ax.plot(t_gen, x_, color=c_, lw=1)
     ax.set_title(f"generated paths $X_t$ ({N_SHOW} of {n_gen}), coloured by $X_T$"); ax.set_xlabel("t")
-
-    ax = axes[0, 1]
-    for a_, c_ in zip(alpha_t[:N_SHOW], colors_xt):
-        ax.plot(t_a, a_, color=c_, lw=1)
-    ax.plot(t_a, alpha_t.mean(axis=0), "k", lw=2, label=r"mean $\alpha^*_t$ (all paths)")
-    ax.axhline(0.0, color="grey", lw=0.6)
-    ax.set_ylim(a_lo, a_hi); ax.legend(loc="upper left")
-    ax.set_title(r"control trajectories $t\mapsto\alpha^*_t$ of the same paths (same colours)"); ax.set_xlabel("t")
     fig.colorbar(ScalarMappable(norm_xt, cmap_xt), ax=ax, label="$X_T$")
 
-    ax = axes[1, 0]
-    q05, q25, q50, q75, q95 = np.percentile(alpha_t, [5, 25, 50, 75, 95], axis=0)
-    ax.fill_between(t_a, q05, q95, color=LAW_COLORS["generated"], alpha=0.15, lw=0, label=r"$\alpha^*_t$: 5–95%")
-    ax.fill_between(t_a, q25, q75, color=LAW_COLORS["generated"], alpha=0.35, lw=0, label="25–75%")
-    ax.plot(t_a, q50, color=LAW_COLORS["generated"], lw=2, label="median")
-    if drift_ref is not None:
-        # the Föllmer drift of a feasible target: the control should approach its law as kappa grows
-        drift_label, t_ref, m_ref, s_ref = drift_ref
-        ax.plot(t_ref, m_ref, "--", color=LAW_COLORS["target"], lw=2, label=f"target {drift_label}: mean")
-        for sgn in (-1, 1):
-            ax.plot(t_ref, m_ref + sgn * 1.645 * s_ref, ":", color=LAW_COLORS["target"], lw=2,
-                    label="mean ± 1.645 std (5–95% if Gaussian)" if sgn > 0 else None)
-    ax.axhline(0.0, color="grey", lw=0.6)
-    ax.set_ylim(a_lo, a_hi); ax.legend(fontsize=8, loc="upper left")
-    ax.set_title(r"distribution of the control over time"); ax.set_xlabel("t")
-
-    ax = axes[1, 1]
+    ax = axes[1]
     x_lo, x_hi = np.percentile(gen_X, [0.5, 99.5])
     for t_eval, c_ in zip((0.1, 0.5, 0.9), (PALETTE[5], PALETTE[0], PALETTE[1])):
         k = int(np.argmin(np.abs(t_a - t_eval)))
@@ -386,6 +350,7 @@ if HAS_GEN:
     ax.axhline(0.0, color="grey", lw=0.6)
     ax.set_xlim(x_lo, x_hi); ax.set_ylim(a_lo, a_hi); ax.legend(fontsize=8, markerscale=3)
     ax.set_title(r"feedback: $\alpha^*_t$ against the state $X_t$"); ax.set_xlabel("$X_t$"); ax.set_ylabel(r"$\alpha^*_t$")
+    save_pdf(fig, "paths_feedback")
     plt.show()
 
 # %%
@@ -432,27 +397,23 @@ print(f"  (the empirical penalty multiplies any bias of m by kappa*lambda, up to
 # %% [markdown]
 # ## Part 4 — Validation
 #
-# The generated laws should reproduce the target paths in distribution, and their expected signatures
+# The generated law should reproduce the target paths in distribution, and its expected signature
 # should match $\mathcal E+\Lambda^{-1}\boldsymbol p^*$, the theoretical residual at finite $\kappa$
 # (note §8), up to Monte-Carlo error. Forced-zero words are not matched by design: they carry no dual
 # coefficient, so their moments are whatever the tilt produces.
-#
-# The **uncontrolled Brownian motion** ($\alpha\equiv0$, i.e. $\boldsymbol p=0$, the reference measure of the
-# tilt) is shown alongside as a baseline: it shows how far the control has to move the law. Its paths
-# are the first dual-sample paths, and its expected signature is the dual-sample mean (same grid).
 
 # %%
 X_bm = X0 + W_dual[:M_TARGET]                      # uncontrolled BM started at the target's X_0
-m_bm, se_bm = em.expected_signature(np.asarray(S_dual))
 laws = {"target": (t_grid, X_target)}
 if HAS_GEN:
     laws["generated"] = (t_gen, gen_X)
-laws.update({"resampled": (t_grid, X_resampled), "BM": (t_grid, X_bm)})
-fig, axes = plt.subplots(2, 4, figsize=(26, 10))
-for ax in axes[0, len(laws):]:
-    ax.axis("off")
+y_lo = min(np.percentile(Xp, 0.5) for _, Xp in laws.values())
+y_hi = max(np.percentile(Xp, 99.5) for _, Xp in laws.values())
+fig = plt.figure(figsize=(26, 10))
+gs = fig.add_gridspec(2, 4)
+span = 4 // len(laws)
 for j, (name, (tg, Xp)) in enumerate(laws.items()):
-    ax = axes[0, j]
+    ax = fig.add_subplot(gs[0, j * span:(j + 1) * span])
     ax.plot(tg, Xp[:50].T, color=LAW_COLORS[name], lw=0.6, alpha=0.4)
     for other, (tg_o, X_o) in laws.items():
         mo, so = X_o.mean(axis=0), X_o.std(axis=0)
@@ -461,26 +422,23 @@ for j, (name, (tg, Xp)) in enumerate(laws.items()):
         ax.fill_between(tg_o, mo - so, mo + so, color=LAW_COLORS[other], alpha=0.12 if other == name else 0.0)
         ax.plot(tg_o, mo + so, color=LAW_COLORS[other], lw=0.8, ls=":")
         ax.plot(tg_o, mo - so, color=LAW_COLORS[other], lw=0.8, ls=":")
-    ax.set_title(f"{name if name != 'BM' else 'uncontrolled BM'}: 50 paths"); ax.set_xlabel("t")
+    ax.set_title(f"{name}: 50 paths"); ax.set_xlabel("t"); ax.set_ylim(y_lo, y_hi)
     if j == 0:
         ax.legend(fontsize=8)
-y_lo = min(np.percentile(Xp, 0.5) for _, Xp in laws.values())
-y_hi = max(np.percentile(Xp, 99.5) for _, Xp in laws.values())
-for ax in axes[0]:
-    ax.set_ylim(y_lo, y_hi)
 grid_y = np.linspace(y_lo, y_hi, 300)
 for j, t_eval in enumerate([0.25, 0.5, 1.0]):
-    ax = axes[1, j]
+    ax = fig.add_subplot(gs[1, j])
     for name, (tg, Xp) in laws.items():
         k = int(np.argmin(np.abs(tg - t_eval)))
         vals = Xp[:, k]
         ax.hist(vals, bins=60, range=(y_lo, y_hi), density=True, alpha=0.25, color=LAW_COLORS[name])
         ax.plot(grid_y, gaussian_kde(vals)(grid_y), color=LAW_COLORS[name], lw=2, label=name)
     ax.set_title(f"marginal of $X_t$ at t = {t_eval}"); ax.legend()
-ax = axes[1, 3]
+ax = fig.add_subplot(gs[1, 3])
 for name, (tg, Xp) in laws.items():
     ax.plot(tg, Xp.std(axis=0), color=LAW_COLORS[name], lw=2, label=name)
 ax.set_title("std of $X_t$"); ax.set_xlabel("t"); ax.legend()
+save_pdf(fig, "laws")
 plt.show()
 
 # %% [markdown]
@@ -490,12 +448,12 @@ plt.show()
 # fixed $s$. Right: autocorrelation of the increments
 # $\Delta X_t=X_{t+\Delta}-X_t$ at lag $k\Delta$, $\operatorname{Corr}(\Delta X_t,\Delta X_{t+k\Delta})$, pooled over $t$
 # (each time slice is centred across paths, so a time-dependent mean does not count as correlation).
-# All laws are compared on the grid of the generated paths, $\Delta=T/$`GEN_STEPS`; the finer laws are
+# Both laws are compared on the grid of the generated paths, $\Delta=T/$`GEN_STEPS`; the finer target is
 # subsampled. Brownian increments are uncorrelated. For the RL fBM the increment autocorrelation is
-# negative for $H<\tfrac12$ and positive for $H>\tfrac12$. The generated and resampled laws are
-# Brownian motions with drift, with unit volatility. When the target's local volatility $K(0)$ differs
-# from $1$ (singular target), the unit-volatility noise dominates their increments at the grid scale,
-# whatever the matched signature moments are.
+# negative for $H<\tfrac12$ and positive for $H>\tfrac12$. The generated law is a Brownian motion with
+# drift, with unit volatility. When the target's local volatility $K(0)$ differs from $1$ (singular
+# target), the unit-volatility noise dominates its increments at the grid scale, whatever the matched
+# signature moments are.
 
 # %%
 def on_grid(tg, Xp, t_common):
@@ -542,19 +500,19 @@ for name, Xc in on_common.items():
     ax.plot(lags[1:], increment_acf(Xc, MAX_LAG)[1:], "o-", ms=3, color=LAW_COLORS[name], lw=1.5, label=name)
 ax.axhline(0.0, color="k", lw=0.8)
 ax.set_title(rf"increment autocorrelation, $\Delta$ = {dt_common:g}"); ax.set_xlabel("lag"); ax.legend()
+save_pdf(fig, "autocorrelation")
 plt.show()
 
 # %%
 gen_moments = {"generated": (m_gen, se_gen)} if HAS_GEN else {}
-gen_moments["resampled"] = (m_res, se_res)
 
 
 def grouped_bars(ax, sel_idx, level_idx, show_labels=True):
-    """Grouped bars over the words ``sel_idx``. The y-range is set by target / generated / resampled
-    over the whole level ``level_idx`` (BM excluded); BM bars beyond it are clipped and marked."""
-    width = 0.21
+    """Grouped bars over the words ``sel_idx``. The y-range is set by target / generated over the
+    whole level ``level_idx``, so that the parts of a split level share it."""
     x = np.arange(len(sel_idx))
-    series = {"target": (E, E_se), **gen_moments, "BM": (m_bm, se_bm)}
+    series = {"target": (E, E_se), **gen_moments}
+    width = 0.84 / len(series)
     shift = (len(series) - 1) / 2
     for j, (name, (m, se_m)) in enumerate(series.items()):
         ax.bar(x + (j - shift) * width, m[sel_idx], width=width, color=LAW_COLORS[name],
@@ -564,11 +522,6 @@ def grouped_bars(ax, sel_idx, level_idx, show_labels=True):
     pad = 0.12 * (hi - lo) if hi > lo else 1.0
     lo, hi = lo - pad, hi + pad
     ax.set_ylim(lo, hi)
-    x_bm = x + shift * width
-    for side, edge, marker in ((m_bm[sel_idx] > hi, hi, "^"), (m_bm[sel_idx] < lo, lo, "v")):
-        if side.any():
-            ax.plot(x_bm[side], np.full(side.sum(), edge - 0.04 * (hi - lo) * (1 if marker == "^" else -1)),
-                    marker, color=LAW_COLORS["BM"], mec="k", mew=0.5, ms=6, ls="none")
     for xi, i in zip(x, sel_idx):
         if cone.forced_mask[i]:
             ax.axvspan(xi - 0.45, xi + 0.45, color=CLASS_COLORS["forced"], alpha=0.12, lw=0)
@@ -579,23 +532,29 @@ def grouped_bars(ax, sel_idx, level_idx, show_labels=True):
                   rotation=90 if len(sel_idx) > 8 else 0, fontsize=7 if len(sel_idx) > 16 else 9)
 
 
-fig = plt.figure(figsize=(26, 4.2 * 5))
-fig.suptitle("Expected signature per level: error bars = 2 s.e.; shaded words: orange = lead, grey = forced; "
-             "y-range set by target / generated / resampled, ▲▼ = BM bar beyond the axis", fontsize=13)
-gs = fig.add_gridspec(5, 4)
-layout = {1: gs[0, 0], 2: gs[0, 1], 3: gs[0, 2:], 4: gs[1, :2], 5: gs[1, 2:], 6: gs[2, :]}
-for k in range(1, 7):
-    ax = fig.add_subplot(layout[k])
+# Panels on a 4-column grid: levels 1-5 share rows, from level 6 on each panel is a full row of at most 64 words
+panels, row, col = [], 0, 0
+for k in range(1, N + 1):
+    span = 1 if k <= 2 else 2 if k <= 5 else 4
+    n_parts = max(2 ** (k - 6), 1)
+    for part in range(n_parts):
+        if col + span > 4:
+            row, col = row + 1, 0
+        panels.append((k, part, n_parts, row, col, span))
+        col += span
+
+fig = plt.figure(figsize=(26, 4.2 * (row + 1)), layout="constrained")
+fig.suptitle("Expected signature per level: error bars = 2 s.e.; shaded words: orange = lead, grey = forced",
+             fontsize=13)
+gs = fig.add_gridspec(row + 1, 4)
+for k, part, n_parts, r, c, span in panels:
+    ax = fig.add_subplot(gs[r, c:c + span])
     lvl = np.flatnonzero(levels == k)
-    grouped_bars(ax, lvl, lvl)
-    ax.set_title(f"level {k}")
+    grouped_bars(ax, np.array_split(lvl, n_parts)[part], lvl)
+    ax.set_title(f"level {k}" if n_parts == 1 else f"level {k}, part {part + 1}/{n_parts}")
     if k == 1:
         ax.legend()
-lvl7 = np.flatnonzero(levels == 7)
-for r, half in enumerate(np.array_split(lvl7, 2)):
-    ax = fig.add_subplot(gs[3 + r, :])
-    grouped_bars(ax, half, lvl7)
-    ax.set_title(f"level 7, part {r + 1}/2")
+save_pdf(fig, "expected_signature")
 plt.show()
 
 # %%
